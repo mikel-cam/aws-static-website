@@ -23,7 +23,7 @@ jobs:
         id: changed_files
         run: |
           echo "Getting list of changed .html files..."
-          FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.html$' || true)
+          FILES=$(git diff --name-only HEAD^ HEAD | grep '\.html$' || true)
           echo "Changed files: $FILES"
           echo "files=$FILES" >> $GITHUB_OUTPUT
 
