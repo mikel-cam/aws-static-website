@@ -46,3 +46,9 @@ jobs:
             echo "Uploading $file"
             aws s3 cp "$file" "s3://sampleawshosting/$file"
           done
+      
+      - name: Invalidate CloudFront Cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id EZOYY1XIE9Y0U \
+            --paths "/*"
