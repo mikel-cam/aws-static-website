@@ -1,8 +1,8 @@
-name: Deploy Static Website to S3
+name: Deploy Changed HTML Files to S3
 
 on:
   push:
-    branches: [ main ]  # Triggers when you push to the main branch
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -12,12 +12,26 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
+      - name: Set up AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-southeast-1  # Change to your region
 
-      - name: Sync website to S3
-        run: aws s3 sync . s3://sampleawshosting --delete
+      - name: Detect changed HTML files
+        id: changed_files
+        run: |
+          echo "Getting list of changed .html files..."
+          FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '\.html$' || true)
+          echo "Changed files: $FILES"
+          echo "files=$FILES" >> $GITHUB_OUTPUT
+
+      - name: Upload changed HTML files to S3
+        if: steps.changed_files.outputs.files != ''
+        run: |
+          echo "Uploading changed files..."
+          for file in ${{ steps.changed_files.outputs.files }}; do
+            echo "Uploading $file"
+            aws s3 cp "$file" "s3://sampleawshosting/$file"
+          done
