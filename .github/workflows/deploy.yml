@@ -43,8 +43,9 @@ jobs:
         run: |
           echo "Uploading changed files..."
           echo "${{ steps.changed_files.outputs.files }}" | while IFS= read -r file; do
-            echo "Uploading $file"
-            aws s3 cp "$file" "s3://sampleawshosting/$file"
+            filename=$(basename "$file")
+            echo "Uploading $file as $filename"
+            aws s3 cp "$file" "s3://sampleawshosting/$filename"
           done
       
       - name: Invalidate CloudFront Cache
