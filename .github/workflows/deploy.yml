@@ -22,10 +22,21 @@ jobs:
       - name: Detect changed HTML files
         id: changed_files
         run: |
-          echo "Getting list of changed .html files..."
-          FILES=$(git diff --name-only HEAD^ HEAD | grep '\.html$' || true)
-          echo "Changed files: $FILES"
-          echo "files=$FILES" >> $GITHUB_OUTPUT
+          echo "Detecting changed files..."
+
+          # Check if this is the first commit
+          if [ $(git rev-list --count HEAD) -eq 1 ]; then
+            echo "First commit — uploading all files"
+            FILES=$(find . -type f -not -path "./.git/*" -not -path "./.github/*")
+          else
+            echo "Getting files changed in the last commit only"
+            FILES=$(git diff --name-only HEAD^ HEAD || true)
+          fi
+
+          echo "FILES: $FILES"
+          echo "files<<EOF" >> $GITHUB_OUTPUT
+          echo "$FILES" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Upload changed HTML files to S3
         if: steps.changed_files.outputs.files != ''
